@@ -1,0 +1,1 @@
+.input-flash-wrong{border-color:var(--red)!important;animation:flashRed .4s}@keyframes flashRed{0%,to{background:var(--bg3)}50%{background:#ef444440}}

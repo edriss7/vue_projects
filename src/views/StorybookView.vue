@@ -1942,6 +1942,543 @@
         </SbStory>
       </section>
 
+      <!-- ════════════════ NEW CHARTS ════════════════ -->
+      <section :id="sid('waterfall-chart')" v-show="activeSection === 'waterfall-chart'" class="sb-section">
+        <h2 class="sb-section-title">Waterfall Chart</h2>
+        <p class="sb-section-desc">Sequential +/− chart showing cumulative revenue changes.</p>
+        <SbStory :code="waterfallCode">
+          <svg viewBox="0 -10 420 210" style="width:100%;max-width:500px;display:block">
+            <g v-for="(bar, i) in waterfallBars" :key="bar.label">
+              <rect :x="10 + i*65" :y="wfBarY(bar)" :width="52" :height="wfBarH(bar)"
+                :fill="bar.isTotal ? '#6366f1' : bar.value >= 0 ? '#22c55e' : '#ef4444'" rx="3"/>
+              <text :x="10 + i*65 + 26" :y="wfBarY(bar) - 4" text-anchor="middle" style="font-size:9px;fill:var(--text2)">
+                {{ bar.value > 0 && !bar.isTotal ? '+' : '' }}{{ bar.value }}
+              </text>
+              <text :x="10 + i*65 + 26" y="197" text-anchor="middle" style="font-size:9px;fill:var(--text2)">{{ bar.label }}</text>
+            </g>
+            <line x1="10" y1="178" x2="410" y2="178" stroke="var(--bg3)" stroke-width="1"/>
+          </svg>
+        </SbStory>
+      </section>
+
+      <section :id="sid('bubble-chart')" v-show="activeSection === 'bubble-chart'" class="sb-section">
+        <h2 class="sb-section-title">Bubble Chart</h2>
+        <p class="sb-section-desc">Three-dimensional scatter — X: speed, Y: satisfaction, size: market share.</p>
+        <SbStory :code="bubbleChartCode">
+          <svg viewBox="0 0 380 200" style="width:100%;max-width:480px;display:block;overflow:visible">
+            <line x1="30" y1="10" x2="30" y2="175" stroke="var(--bg3)" stroke-width="1"/>
+            <line x1="30" y1="175" x2="360" y2="175" stroke="var(--bg3)" stroke-width="1"/>
+            <circle v-for="(b, i) in bubbleData" :key="b.label"
+              :cx="30 + b.x * 3.3" :cy="175 - b.y * 1.6"
+              :r="bubbleHover === i ? b.r + 5 : b.r"
+              :fill="b.color + '88'" :stroke="b.color" stroke-width="2"
+              style="cursor:pointer;transition:r .15s"
+              @mouseenter="bubbleHover = i" @mouseleave="bubbleHover = null"/>
+            <text v-for="b in bubbleData" :key="b.label + 't'"
+              :x="30 + b.x * 3.3" :y="175 - b.y * 1.6 + 4"
+              text-anchor="middle" style="font-size:9px;fill:#fff;font-weight:700;pointer-events:none">{{ b.label }}</text>
+            <text x="190" y="198" text-anchor="middle" style="font-size:10px;fill:var(--text2)">Speed Score</text>
+          </svg>
+        </SbStory>
+      </section>
+
+      <section :id="sid('funnel-chart')" v-show="activeSection === 'funnel-chart'" class="sb-section">
+        <h2 class="sb-section-title">Funnel Chart</h2>
+        <p class="sb-section-desc">Conversion funnel — each stage shows count and overall conversion %.</p>
+        <SbStory :code="funnelCode">
+          <div style="display:flex;flex-direction:column;gap:6px;max-width:420px">
+            <div v-for="(step, i) in funnelSteps" :key="step.label" style="display:flex;align-items:center;gap:12px">
+              <div style="flex:1;height:44px;border-radius:4px;display:flex;align-items:center;padding:0 16px;font-weight:600;font-size:.88rem;color:#fff;justify-content:space-between;transition:width .3s"
+                :style="{ background: step.color, width: (step.value / funnelMax * 100) + '%', minWidth:'160px' }">
+                <span>{{ step.label }}</span>
+                <span style="font-family:monospace">{{ step.value.toLocaleString() }}</span>
+              </div>
+              <span style="font-size:.78rem;color:var(--text2);min-width:44px;text-align:right">
+                {{ i > 0 ? Math.round(step.value / funnelSteps[0].value * 100) + '%' : '100%' }}
+              </span>
+            </div>
+          </div>
+        </SbStory>
+      </section>
+
+      <section :id="sid('treemap-chart')" v-show="activeSection === 'treemap-chart'" class="sb-section">
+        <h2 class="sb-section-title">Treemap</h2>
+        <p class="sb-section-desc">Proportional rectangular area chart — sized by market weight %.</p>
+        <SbStory :code="treemapCode">
+          <svg viewBox="0 0 500 200" style="width:100%;max-width:520px;display:block;border-radius:8px;overflow:hidden">
+            <rect v-for="r in treemapRects" :key="r.label"
+              :x="r.x" :y="r.y" :width="r.w" :height="r.h"
+              :fill="r.color + 'cc'" stroke="var(--bg1)" stroke-width="2"/>
+            <text v-for="r in treemapRects" :key="r.label+'t'"
+              :x="r.x + r.w/2" :y="r.y + r.h/2 - 6"
+              text-anchor="middle" style="font-size:12px;fill:#fff;font-weight:700">{{ r.label }}</text>
+            <text v-for="r in treemapRects" :key="r.label+'v'"
+              :x="r.x + r.w/2" :y="r.y + r.h/2 + 10"
+              text-anchor="middle" style="font-size:10px;fill:rgba(255,255,255,.8)">{{ r.value }}%</text>
+          </svg>
+        </SbStory>
+      </section>
+
+      <section :id="sid('candlestick')" v-show="activeSection === 'candlestick'" class="sb-section">
+        <h2 class="sb-section-title">Candlestick Chart</h2>
+        <p class="sb-section-desc">OHLC stock chart — green = bullish (close &gt; open), red = bearish.</p>
+        <SbStory :code="candlestickCode">
+          <svg viewBox="0 0 420 200" style="width:100%;max-width:480px;display:block">
+            <line x1="30" y1="10" x2="30" y2="175" stroke="var(--bg3)" stroke-width="1"/>
+            <line x1="30" y1="175" x2="410" y2="175" stroke="var(--bg3)" stroke-width="1"/>
+            <g v-for="(c, i) in candleData" :key="c.d">
+              <line :x1="55 + i*52" :y1="candleY(c.h)" :x2="55 + i*52" :y2="candleY(c.l)"
+                :stroke="c.c >= c.o ? '#22c55e' : '#ef4444'" stroke-width="2"/>
+              <rect :x="55 + i*52 - 10" :y="candleY(Math.max(c.o, c.c))"
+                :width="20" :height="Math.max(2, Math.abs(candleY(c.o) - candleY(c.c)))"
+                :fill="c.c >= c.o ? '#22c55e' : '#ef4444'" rx="2"/>
+              <text :x="55 + i*52" y="193" text-anchor="middle" style="font-size:9px;fill:var(--text2)">{{ c.d }}</text>
+            </g>
+          </svg>
+        </SbStory>
+      </section>
+
+      <section :id="sid('multi-line')" v-show="activeSection === 'multi-line'" class="sb-section">
+        <h2 class="sb-section-title">Multi-line Chart</h2>
+        <p class="sb-section-desc">Three-series time series — Revenue, Expenses, Profit over 12 months.</p>
+        <SbStory :code="multiLineCode">
+          <div style="display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap">
+            <div v-for="s in mlSeries" :key="s.name" style="display:flex;align-items:center;gap:6px;font-size:.82rem">
+              <div style="width:20px;height:3px;border-radius:2px" :style="{ background: s.color }"/>
+              {{ s.name }}
+            </div>
+          </div>
+          <svg viewBox="0 0 510 180" style="width:100%;max-width:520px;display:block">
+            <line x1="30" y1="10" x2="30" y2="162" stroke="var(--bg3)" stroke-width="1"/>
+            <line x1="30" y1="162" x2="510" y2="162" stroke="var(--bg3)" stroke-width="1"/>
+            <polyline v-for="s in mlSeries" :key="s.name"
+              :points="mlPoints(s.values)" fill="none"
+              :stroke="s.color" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+            <text v-for="(m, i) in mlMonths" :key="m"
+              :x="30 + (i / 11) * 470" y="177"
+              text-anchor="middle" style="font-size:8px;fill:var(--text2)">{{ m }}</text>
+          </svg>
+        </SbStory>
+      </section>
+
+      <!-- ════════════════ SPREADSHEETS ════════════════ -->
+      <section :id="sid('pivot-table')" v-show="activeSection === 'pivot-table'" class="sb-section">
+        <h2 class="sb-section-title">Pivot Table</h2>
+        <p class="sb-section-desc">Sales data pivoted by Region × Product with row/column totals.</p>
+        <SbStory :code="pivotCode">
+          <div class="sb-table-wrap">
+            <table class="sb-table">
+              <thead>
+                <tr>
+                  <th>Region</th>
+                  <th v-for="p in pivotProducts" :key="p">{{ p }}</th>
+                  <th style="color:var(--accent2)">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="r in pivotRegions" :key="r">
+                  <td style="font-weight:600">{{ r }}</td>
+                  <td v-for="p in pivotProducts" :key="p" style="text-align:right;font-family:monospace">{{ pivotCell(r, p) }}</td>
+                  <td style="font-weight:700;color:var(--accent2);text-align:right;font-family:monospace">{{ pivotRowTotal(r) }}</td>
+                </tr>
+                <tr style="border-top:2px solid var(--accent)">
+                  <td style="font-weight:600;color:var(--accent2)">Total</td>
+                  <td v-for="p in pivotProducts" :key="p" style="font-weight:700;text-align:right;font-family:monospace">{{ pivotColTotal(p) }}</td>
+                  <td style="font-weight:800;color:var(--accent);text-align:right;font-family:monospace">{{ pivotGrandTotal }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </SbStory>
+      </section>
+
+      <section :id="sid('spreadsheet')" v-show="activeSection === 'spreadsheet'" class="sb-section">
+        <h2 class="sb-section-title">Spreadsheet</h2>
+        <p class="sb-section-desc">Editable grid — last column auto-sums the row, bottom row sums each column.</p>
+        <SbStory :code="spreadsheetCode">
+          <div class="sb-table-wrap">
+            <table class="sb-table sb-spreadsheet">
+              <thead>
+                <tr>
+                  <th style="width:36px;text-align:center">#</th>
+                  <th v-for="h in ssHeaders" :key="h" style="text-align:center">{{ h }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(row, ri) in ssData" :key="ri">
+                  <td style="text-align:center;color:var(--text2);font-size:.75rem">{{ ri + 1 }}</td>
+                  <td v-for="ci in 4" :key="ci" style="padding:0">
+                    <input class="sb-cell-input" v-model="ssData[ri][ci - 1]" />
+                  </td>
+                  <td style="text-align:right;padding-right:12px;font-weight:700;color:var(--accent2);font-family:monospace">
+                    {{ ssRowSum(ri) }}
+                  </td>
+                </tr>
+                <tr style="border-top:2px solid var(--accent)">
+                  <td style="text-align:center;color:var(--text2);font-size:.9rem">Σ</td>
+                  <td v-for="ci in 4" :key="ci" style="text-align:right;padding-right:12px;font-weight:700;color:var(--accent);font-family:monospace">
+                    {{ ssColSum(ci - 1) }}
+                  </td>
+                  <td style="text-align:right;padding-right:12px;font-weight:800;color:var(--accent);font-family:monospace">
+                    {{ ssGrandTotal }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </SbStory>
+      </section>
+
+      <section :id="sid('sort-table')" v-show="activeSection === 'sort-table'" class="sb-section">
+        <h2 class="sb-section-title">Sortable Table</h2>
+        <p class="sb-section-desc">Click column headers to sort ascending/descending. Filter across all fields.</p>
+        <SbStory :code="sortTableCode">
+          <div style="margin-bottom:12px">
+            <input class="sb-search-input" v-model="stFilter" placeholder="Filter rows…" style="max-width:260px"/>
+          </div>
+          <div class="sb-table-wrap">
+            <table class="sb-table">
+              <thead>
+                <tr>
+                  <th v-for="col in stCols" :key="col.key" @click="stToggleSort(col.key)" style="cursor:pointer;user-select:none">
+                    {{ col.label }}
+                    <span style="font-size:.7rem;margin-left:3px">{{ stSortCol === col.key ? (stSortAsc ? '▲' : '▼') : '⇅' }}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in stSorted" :key="row.name">
+                  <td>{{ row.name }}</td>
+                  <td>{{ row.dept }}</td>
+                  <td style="text-align:right;font-family:monospace">${{ row.salary.toLocaleString() }}</td>
+                  <td>
+                    <span class="badge" :style="{
+                      background: row.status==='Active' ? '#22c55e22' : row.status==='Leave' ? '#f59e0b22' : '#ef444422',
+                      color:      row.status==='Active' ? '#22c55e'   : row.status==='Leave' ? '#f59e0b'   : '#ef4444' }">
+                      {{ row.status }}
+                    </span>
+                  </td>
+                  <td style="font-family:monospace">{{ row.joined }}</td>
+                </tr>
+                <tr v-if="!stSorted.length">
+                  <td colspan="5" style="text-align:center;color:var(--text2);padding:24px">No results</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </SbStory>
+      </section>
+
+      <section :id="sid('comparison')" v-show="activeSection === 'comparison'" class="sb-section">
+        <h2 class="sb-section-title">Comparison Table</h2>
+        <p class="sb-section-desc">Feature matrix for pricing plan comparison — ✓/✗ per plan.</p>
+        <SbStory :code="comparisonCode">
+          <div class="sb-table-wrap">
+            <table class="sb-table">
+              <thead>
+                <tr>
+                  <th style="min-width:180px">Feature</th>
+                  <th v-for="plan in cmpPlans" :key="plan.name" style="text-align:center;min-width:110px">
+                    <div style="font-weight:800;font-size:.88rem">{{ plan.name }}</div>
+                    <div style="font-size:.75rem;color:var(--text2);margin-top:2px">{{ plan.price }}</div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="feat in cmpFeatures" :key="feat">
+                  <td style="font-weight:500;font-size:.85rem">{{ feat }}</td>
+                  <td v-for="plan in cmpPlans" :key="plan.name" style="text-align:center">
+                    <span :style="{ color: plan.features.includes(feat) ? '#22c55e' : '#ef4444', fontWeight:700, fontSize:'1.1rem' }">
+                      {{ plan.features.includes(feat) ? '✓' : '✗' }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </SbStory>
+      </section>
+
+      <section :id="sid('crosstab')" v-show="activeSection === 'crosstab'" class="sb-section">
+        <h2 class="sb-section-title">Cross-Tab</h2>
+        <p class="sb-section-desc">Cross-tabulation of headcount by Department × Quarter.</p>
+        <SbStory :code="crosstabCode">
+          <div class="sb-table-wrap">
+            <table class="sb-table">
+              <thead>
+                <tr>
+                  <th>Department</th>
+                  <th v-for="q in ctQuarters" :key="q" style="text-align:center">{{ q }}</th>
+                  <th style="text-align:center;color:var(--accent2)">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="dept in ctDepts" :key="dept">
+                  <td style="font-weight:600">{{ dept }}</td>
+                  <td v-for="q in ctQuarters" :key="q" style="text-align:center;font-family:monospace">{{ ctCell(dept, q) }}</td>
+                  <td style="text-align:center;font-weight:700;color:var(--accent2);font-family:monospace">{{ ctRowTotal(dept) }}</td>
+                </tr>
+                <tr style="border-top:2px solid var(--accent)">
+                  <td style="font-weight:600;color:var(--accent2)">Total</td>
+                  <td v-for="q in ctQuarters" :key="q" style="text-align:center;font-weight:700;font-family:monospace">{{ ctColTotal(q) }}</td>
+                  <td style="text-align:center;font-weight:800;color:var(--accent);font-family:monospace">{{ ctGrandTotal }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </SbStory>
+      </section>
+
+      <section :id="sid('freeze-table')" v-show="activeSection === 'freeze-table'" class="sb-section">
+        <h2 class="sb-section-title">Freeze Columns</h2>
+        <p class="sb-section-desc">First column is sticky (frozen) while the table scrolls horizontally.</p>
+        <SbStory :code="freezeTableCode">
+          <div class="sb-table-wrap" style="overflow-x:auto;max-width:100%">
+            <table class="sb-table" style="min-width:700px">
+              <thead>
+                <tr>
+                  <th class="sb-sticky-col">Company</th>
+                  <th v-for="h in ftHeaders" :key="h" style="text-align:right">{{ h }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in ftRows" :key="row[0]">
+                  <td class="sb-sticky-col" style="font-weight:600">{{ row[0] }}</td>
+                  <td v-for="(cell, i) in row.slice(1)" :key="i" style="text-align:right;font-family:monospace">{{ cell }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </SbStory>
+      </section>
+
+      <section :id="sid('row-select')" v-show="activeSection === 'row-select'" class="sb-section">
+        <h2 class="sb-section-title">Row Selection</h2>
+        <p class="sb-section-desc">Checkbox multi-select with select-all and bulk delete action.</p>
+        <SbStory :code="rowSelectCode">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;min-height:32px">
+            <span style="font-size:.85rem;color:var(--text2)">{{ rsSelected.length }} of {{ rsRows.length }} selected</span>
+            <button class="btn btn-secondary btn-sm" :disabled="!rsSelected.length"
+              :style="{ opacity: rsSelected.length ? 1 : .4 }" @click="rsDelete">
+              🗑 Delete selected
+            </button>
+          </div>
+          <div class="sb-table-wrap">
+            <table class="sb-table">
+              <thead>
+                <tr>
+                  <th style="width:36px"><input type="checkbox" v-model="rsAllSelected"/></th>
+                  <th>Project</th><th>Status</th><th>Budget</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in rsRows" :key="row.id"
+                  :style="{ background: rsSelected.includes(row.id) ? 'rgba(99,102,241,.08)' : '' }">
+                  <td><input type="checkbox" :value="row.id" v-model="rsSelected"/></td>
+                  <td style="font-weight:500">{{ row.name }}</td>
+                  <td>
+                    <span class="badge" :style="{
+                      background: row.status==='Active' ? '#22c55e22' : row.status==='Complete' ? '#6366f122' : '#f59e0b22',
+                      color:      row.status==='Active' ? '#22c55e'   : row.status==='Complete' ? '#6366f1'   : '#f59e0b' }">
+                      {{ row.status }}
+                    </span>
+                  </td>
+                  <td style="font-family:monospace">{{ row.budget }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </SbStory>
+      </section>
+
+      <!-- ════════════════ ADVANCED ════════════════ -->
+      <section :id="sid('virtual-list')" v-show="activeSection === 'virtual-list'" class="sb-section">
+        <h2 class="sb-section-title">Virtual List</h2>
+        <p class="sb-section-desc">10,000 rows — only the ~10 visible rows are in the DOM at any time.</p>
+        <SbStory :code="virtualListCode">
+          <div class="sb-virtual-container" @scroll="vlOnScroll">
+            <div :style="{ height: vlAllItems.length * vlItemHeight + 'px', position:'relative' }">
+              <div v-for="(item, idx) in vlVisible" :key="item.id"
+                :style="{ position:'absolute', top: (vlStartIdx + idx) * vlItemHeight + 'px', left:0, right:0 }"
+                class="sb-virtual-row">
+                <span style="color:var(--text2);font-size:.78rem;min-width:70px;font-family:monospace">{{ item.id }}</span>
+                <span style="flex:1">{{ item.name }}</span>
+                <span style="font-family:monospace;color:var(--accent2)">{{ item.value }}</span>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:8px;font-size:.78rem;color:var(--text2)">
+            Showing rows {{ vlStartIdx + 1 }}–{{ Math.min(vlStartIdx + 10, vlAllItems.length) }} of {{ vlAllItems.length.toLocaleString() }}
+          </div>
+        </SbStory>
+      </section>
+
+      <section :id="sid('rich-text')" v-show="activeSection === 'rich-text'" class="sb-section">
+        <h2 class="sb-section-title">Rich Text Editor</h2>
+        <p class="sb-section-desc">Contenteditable with a formatting toolbar — bold, italic, lists, alignment.</p>
+        <SbStory :code="richTextCode">
+          <div class="sb-rte">
+            <div class="sb-rte-toolbar">
+              <button class="sb-rte-btn" @click="rtExec('bold')" title="Bold"><b>B</b></button>
+              <button class="sb-rte-btn" @click="rtExec('italic')" title="Italic"><i>I</i></button>
+              <button class="sb-rte-btn" @click="rtExec('underline')" title="Underline"><u>U</u></button>
+              <button class="sb-rte-btn" @click="rtExec('strikeThrough')" title="Strike"><s>S</s></button>
+              <div class="sb-rte-sep"/>
+              <button class="sb-rte-btn" @click="rtExec('insertUnorderedList')" title="Bullets">• List</button>
+              <button class="sb-rte-btn" @click="rtExec('insertOrderedList')" title="Numbers">1. List</button>
+              <div class="sb-rte-sep"/>
+              <button class="sb-rte-btn" @click="rtExec('justifyLeft')" title="Left">⬤L</button>
+              <button class="sb-rte-btn" @click="rtExec('justifyCenter')" title="Center">⬤C</button>
+              <button class="sb-rte-btn" @click="rtExec('justifyRight')" title="Right">⬤R</button>
+              <div class="sb-rte-sep"/>
+              <button class="sb-rte-btn" @click="rtExec('removeFormat')" title="Clear formatting" style="color:var(--text2)">✕ Clear</button>
+            </div>
+            <div ref="rtEl" class="sb-rte-body" contenteditable="true">
+              <p>Start typing here… <b>bold</b>, <i>italic</i>, <u>underline</u> — all work.</p>
+              <p>Select any text and use the toolbar to format it.</p>
+            </div>
+          </div>
+        </SbStory>
+      </section>
+
+      <section :id="sid('date-picker')" v-show="activeSection === 'date-picker'" class="sb-section">
+        <h2 class="sb-section-title">Date Picker</h2>
+        <p class="sb-section-desc">Full month calendar with prev/next navigation and day selection.</p>
+        <SbStory :code="datePickerCode">
+          <div class="sb-calendar">
+            <div class="sb-cal-header">
+              <button class="btn btn-secondary btn-sm" @click="dpPrev">‹</button>
+              <span style="font-weight:700;min-width:140px;text-align:center">{{ dpMonthName }} {{ dpYear }}</span>
+              <button class="btn btn-secondary btn-sm" @click="dpNext">›</button>
+            </div>
+            <div class="sb-cal-grid">
+              <div v-for="d in ['Su','Mo','Tu','We','Th','Fr','Sa']" :key="d" class="sb-cal-day-name">{{ d }}</div>
+              <div v-for="(day, i) in dpDays" :key="i"
+                class="sb-cal-day"
+                :class="{ 'sb-cal-day--empty': !day, 'sb-cal-day--selected': day && dpKey(day) === dpSelected }"
+                @click="day && (dpSelected = dpKey(day))">
+                {{ day }}
+              </div>
+            </div>
+            <div style="margin-top:12px;font-size:.85rem;color:var(--text2)">
+              Selected: <strong style="color:var(--accent2)">{{ dpSelected || '—' }}</strong>
+            </div>
+          </div>
+        </SbStory>
+      </section>
+
+      <section :id="sid('file-upload')" v-show="activeSection === 'file-upload'" class="sb-section">
+        <h2 class="sb-section-title">File Upload</h2>
+        <p class="sb-section-desc">Drag-and-drop zone with file list, size display, and remove button.</p>
+        <SbStory :code="fileUploadCode">
+          <div class="sb-dropzone" :class="{ 'sb-dropzone--active': fuDragging }"
+            @dragover.prevent="fuDragging = true"
+            @dragleave.prevent="fuDragging = false"
+            @drop.prevent="fuDrop">
+            <div style="font-size:2.2rem;margin-bottom:8px">📂</div>
+            <div style="font-weight:600;margin-bottom:4px">Drop files here</div>
+            <div style="font-size:.82rem;color:var(--text2);margin-bottom:12px">or click to browse</div>
+            <label class="btn btn-secondary btn-sm" style="cursor:pointer">
+              Browse files
+              <input type="file" multiple style="display:none" @change="fuPick"/>
+            </label>
+          </div>
+          <div v-if="fuFiles.length" style="margin-top:14px;display:flex;flex-direction:column;gap:6px">
+            <div v-for="(f, i) in fuFiles" :key="i" class="sb-file-item">
+              <span>📄</span>
+              <span style="flex:1;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.name }}</span>
+              <span style="font-size:.75rem;color:var(--text2);white-space:nowrap">{{ f.size }}</span>
+              <button style="background:none;border:none;cursor:pointer;color:var(--text2);padding:0 4px;font-size:1rem" @click="fuFiles.splice(i,1)">✕</button>
+            </div>
+          </div>
+        </SbStory>
+      </section>
+
+      <section :id="sid('dashboard')" v-show="activeSection === 'dashboard'" class="sb-section">
+        <h2 class="sb-section-title">Dashboard</h2>
+        <p class="sb-section-desc">Multi-widget analytics dashboard — stat cards, sparkline, and traffic breakdown.</p>
+        <SbStory :code="dashboardCode">
+          <div class="sb-dashboard">
+            <div v-for="s in dashStats" :key="s.label" class="sb-dash-stat">
+              <div style="font-size:.75rem;color:var(--text2);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.04em">{{ s.label }}</div>
+              <div style="font-size:1.6rem;font-weight:800;letter-spacing:-.5px">{{ s.value }}</div>
+              <div style="font-size:.78rem;margin-top:4px" :style="{ color: s.up ? '#22c55e' : '#ef4444' }">
+                {{ s.up ? '▲' : '▼' }} {{ s.change }} vs last month
+              </div>
+            </div>
+            <div class="sb-dash-chart" style="grid-column:span 2">
+              <div style="font-size:.75rem;color:var(--text2);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Revenue (12 months)</div>
+              <svg viewBox="0 0 290 60" style="width:100%">
+                <defs>
+                  <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#6366f1" stop-opacity=".3"/>
+                    <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <polyline :points="mlSeries[0].values.map((v,i) => `${i/11*290},${60 - v/100*58}`).join(' ')"
+                  fill="none" stroke="#6366f1" stroke-width="2" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="sb-dash-chart">
+              <div style="font-size:.75rem;color:var(--text2);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Traffic Sources</div>
+              <div v-for="src in dashSources" :key="src.label" style="margin-bottom:8px">
+                <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:3px">
+                  <span>{{ src.label }}</span>
+                  <span style="color:var(--text2)">{{ src.pct }}%</span>
+                </div>
+                <div style="height:5px;background:var(--bg3);border-radius:3px">
+                  <div style="height:100%;border-radius:3px;transition:width .4s" :style="{ width: src.pct+'%', background: src.color }"/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </SbStory>
+      </section>
+
+      <section :id="sid('gantt-chart')" v-show="activeSection === 'gantt-chart'" class="sb-section">
+        <h2 class="sb-section-title">Gantt Chart</h2>
+        <p class="sb-section-desc">Project timeline with named tasks, day markers, and overlapping bars.</p>
+        <SbStory :code="ganttCode">
+          <div style="overflow-x:auto">
+            <svg :viewBox="`0 0 ${70 + ganttTotalDays * 32} ${32 + ganttTasks.length * 42}`"
+              :width="70 + ganttTotalDays * 32" style="display:block;max-width:100%;min-width:300px">
+              <rect x="70" y="0" :width="ganttTotalDays * 32" height="26" fill="var(--bg3)" rx="0"/>
+              <text v-for="d in ganttTotalDays" :key="d"
+                :x="70 + (d-1)*32 + 16" y="17"
+                text-anchor="middle" style="font-size:9px;fill:var(--text2)">D{{ d }}</text>
+              <g v-for="(task, i) in ganttTasks" :key="task.name">
+                <rect x="0" :y="30 + i*42" width="68" :height="30" fill="var(--bg2)"/>
+                <text x="6" :y="30 + i*42 + 19" style="font-size:10px;fill:var(--text1)">{{ task.name }}</text>
+                <rect
+                  :x="70 + task.start * 32 + 2"
+                  :y="34 + i*42"
+                  :width="task.duration * 32 - 4"
+                  :height="22"
+                  :fill="task.color" rx="5"/>
+                <text
+                  :x="70 + task.start * 32 + task.duration * 16"
+                  :y="34 + i*42 + 15"
+                  text-anchor="middle" style="font-size:9px;fill:#fff;font-weight:700">{{ task.duration }}d</text>
+              </g>
+              <line v-for="d in ganttTotalDays + 1" :key="d"
+                :x1="70 + (d-1)*32" y1="26"
+                :x2="70 + (d-1)*32" :y2="30 + ganttTasks.length * 42"
+                stroke="var(--bg3)" stroke-width="1"/>
+            </svg>
+          </div>
+        </SbStory>
+      </section>
+
+      <section :id="sid('json-viewer')" v-show="activeSection === 'json-viewer'" class="sb-section">
+        <h2 class="sb-section-title">JSON Viewer</h2>
+        <p class="sb-section-desc">Collapsible JSON tree — click ▾/▸ to expand or collapse any node.</p>
+        <SbStory :code="jsonViewerCode">
+          <div style="background:var(--bg2);border:1px solid var(--bg3);border-radius:8px;padding:16px;overflow:auto;max-height:320px">
+            <JsonNode :data="jsonViewerData" :depth="0"/>
+          </div>
+        </SbStory>
+      </section>
+
     </main>
   </div>
 </template>
@@ -2076,7 +2613,13 @@ const groups = [
     { id: 'pie-chart',    label: 'Pie Chart' },
     { id: 'scatter-chart',label: 'Scatter Plot' },
     { id: 'radar-chart',  label: 'Radar Chart' },
-    { id: 'stacked-bar',  label: 'Stacked Bar' },
+    { id: 'stacked-bar',     label: 'Stacked Bar' },
+    { id: 'waterfall-chart', label: 'Waterfall Chart' },
+    { id: 'bubble-chart',    label: 'Bubble Chart' },
+    { id: 'funnel-chart',    label: 'Funnel Chart' },
+    { id: 'treemap-chart',   label: 'Treemap' },
+    { id: 'candlestick',     label: 'Candlestick' },
+    { id: 'multi-line',      label: 'Multi-line Chart' },
   ]},
   { label: 'Data', items: [
     { id: 'data-table',  label: 'Data Table' },
@@ -2121,6 +2664,24 @@ const groups = [
     { id: 'split-view',  label: 'Split View' },
     { id: 'onboarding',  label: 'Onboarding Checklist' },
     { id: 'animations',  label: 'Animations' },
+  ]},
+  { label: 'Spreadsheets', items: [
+    { id: 'pivot-table',  label: 'Pivot Table' },
+    { id: 'spreadsheet',  label: 'Spreadsheet' },
+    { id: 'sort-table',   label: 'Sortable Table' },
+    { id: 'comparison',   label: 'Comparison Table' },
+    { id: 'crosstab',     label: 'Cross-Tab' },
+    { id: 'freeze-table', label: 'Freeze Columns' },
+    { id: 'row-select',   label: 'Row Selection' },
+  ]},
+  { label: 'Advanced', items: [
+    { id: 'virtual-list', label: 'Virtual List' },
+    { id: 'rich-text',    label: 'Rich Text Editor' },
+    { id: 'date-picker',  label: 'Date Picker' },
+    { id: 'file-upload',  label: 'File Upload' },
+    { id: 'dashboard',    label: 'Dashboard' },
+    { id: 'gantt-chart',  label: 'Gantt Chart' },
+    { id: 'json-viewer',  label: 'JSON Viewer' },
   ]},
 ]
 
@@ -3461,6 +4022,462 @@ const onboardingCode = `<div v-for="step in steps" @click="step.done=!step.done"
 </div>`
 const animationsCode = `@keyframes sb-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px)} }
 @keyframes sb-shake  { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }`
+
+// ── Pivot Table ──────────────────────────────────────────────────────────────
+const pivotRaw = [
+  { region: 'North', product: 'Widget A', sales: 120 },
+  { region: 'North', product: 'Widget B', sales: 85  },
+  { region: 'North', product: 'Widget C', sales: 67  },
+  { region: 'South', product: 'Widget A', sales: 95  },
+  { region: 'South', product: 'Widget B', sales: 140 },
+  { region: 'South', product: 'Widget C', sales: 88  },
+  { region: 'East',  product: 'Widget A', sales: 78  },
+  { region: 'East',  product: 'Widget B', sales: 62  },
+  { region: 'East',  product: 'Widget C', sales: 110 },
+  { region: 'West',  product: 'Widget A', sales: 110 },
+  { region: 'West',  product: 'Widget B', sales: 99  },
+  { region: 'West',  product: 'Widget C', sales: 75  },
+]
+const pivotRegions  = computed(() => [...new Set(pivotRaw.map(r => r.region))])
+const pivotProducts = computed(() => [...new Set(pivotRaw.map(r => r.product))])
+function pivotCell(region: string, product: string) {
+  return pivotRaw.find(r => r.region === region && r.product === product)?.sales ?? 0
+}
+function pivotRowTotal(region: string) {
+  return pivotRaw.filter(r => r.region === region).reduce((s, r) => s + r.sales, 0)
+}
+function pivotColTotal(product: string) {
+  return pivotRaw.filter(r => r.product === product).reduce((s, r) => s + r.sales, 0)
+}
+const pivotGrandTotal = computed(() => pivotRaw.reduce((s, r) => s + r.sales, 0))
+
+// ── Spreadsheet ──────────────────────────────────────────────────────────────
+const ssHeaders = ['A', 'B', 'C', 'D', 'Total']
+const ssData = ref([
+  ['10', '20', '30', '40'],
+  ['5',  '15', '25', '35'],
+  ['7',  '14', '21', '28'],
+  ['3',  '9',  '27', '81'],
+  ['12', '8',  '4',  '2' ],
+])
+function ssRowSum(ri: number) {
+  return ssData.value[ri].reduce((s, v) => s + (parseFloat(v) || 0), 0)
+}
+function ssColSum(ci: number) {
+  return ssData.value.reduce((s, r) => s + (parseFloat(r[ci]) || 0), 0)
+}
+const ssGrandTotal = computed(() =>
+  ssData.value.reduce((s, row) => s + row.reduce((rs, v) => rs + (parseFloat(v) || 0), 0), 0)
+)
+
+// ── Sortable Table ────────────────────────────────────────────────────────────
+const stFilter  = ref('')
+const stSortCol = ref('name')
+const stSortAsc = ref(true)
+const stCols = [
+  { key: 'name',   label: 'Name'       },
+  { key: 'dept',   label: 'Department' },
+  { key: 'salary', label: 'Salary'     },
+  { key: 'status', label: 'Status'     },
+  { key: 'joined', label: 'Joined'     },
+]
+const stEmployees = [
+  { name: 'Alice Johnson', dept: 'Engineering', salary: 112000, status: 'Active',   joined: '2021-03' },
+  { name: 'Bob Martinez',  dept: 'Marketing',   salary:  85000, status: 'Active',   joined: '2019-07' },
+  { name: 'Carol White',   dept: 'Engineering', salary: 128000, status: 'Active',   joined: '2020-01' },
+  { name: 'Dave Chen',     dept: 'Design',      salary:  92000, status: 'Leave',    joined: '2022-05' },
+  { name: 'Eve Patel',     dept: 'Marketing',   salary:  78000, status: 'Active',   joined: '2023-02' },
+  { name: 'Frank Kim',     dept: 'Engineering', salary: 135000, status: 'Active',   joined: '2018-11' },
+  { name: 'Grace Liu',     dept: 'Design',      salary:  95000, status: 'Active',   joined: '2021-09' },
+  { name: 'Henry Wu',      dept: 'Marketing',   salary:  82000, status: 'Inactive', joined: '2017-06' },
+]
+const stSorted = computed(() => {
+  let rows = stEmployees.filter(r =>
+    !stFilter.value || Object.values(r).some(v => String(v).toLowerCase().includes(stFilter.value.toLowerCase()))
+  )
+  return [...rows].sort((a, b) => {
+    const av = (a as any)[stSortCol.value]
+    const bv = (b as any)[stSortCol.value]
+    return stSortAsc.value ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1)
+  })
+})
+function stToggleSort(col: string) {
+  if (stSortCol.value === col) stSortAsc.value = !stSortAsc.value
+  else { stSortCol.value = col; stSortAsc.value = true }
+}
+
+// ── Comparison Table ──────────────────────────────────────────────────────────
+const cmpPlans = [
+  { name: 'Free',       price: '$0/mo',   features: ['5 Projects', 'Basic Analytics', 'Email Support', 'API Access'] },
+  { name: 'Pro',        price: '$12/mo',  features: ['5 Projects', 'Basic Analytics', 'Email Support', 'API Access', 'Unlimited Projects', 'Advanced Analytics', 'Priority Support'] },
+  { name: 'Enterprise', price: '$49/mo',  features: ['5 Projects', 'Basic Analytics', 'Email Support', 'API Access', 'Unlimited Projects', 'Advanced Analytics', 'Priority Support', 'SSO / SAML', 'Custom Integrations', 'SLA Guarantee'] },
+]
+const cmpFeatures = ['5 Projects', 'Basic Analytics', 'Email Support', 'API Access', 'Unlimited Projects', 'Advanced Analytics', 'Priority Support', 'SSO / SAML', 'Custom Integrations', 'SLA Guarantee']
+
+// ── Cross-Tab ─────────────────────────────────────────────────────────────────
+const ctRaw = [
+  { dept: 'Engineering', quarter: 'Q1', count: 12 },
+  { dept: 'Engineering', quarter: 'Q2', count: 14 },
+  { dept: 'Engineering', quarter: 'Q3', count: 15 },
+  { dept: 'Engineering', quarter: 'Q4', count: 18 },
+  { dept: 'Marketing',   quarter: 'Q1', count:  8 },
+  { dept: 'Marketing',   quarter: 'Q2', count:  9 },
+  { dept: 'Marketing',   quarter: 'Q3', count:  8 },
+  { dept: 'Marketing',   quarter: 'Q4', count: 11 },
+  { dept: 'Design',      quarter: 'Q1', count:  5 },
+  { dept: 'Design',      quarter: 'Q2', count:  6 },
+  { dept: 'Design',      quarter: 'Q3', count:  7 },
+  { dept: 'Design',      quarter: 'Q4', count:  7 },
+  { dept: 'Sales',       quarter: 'Q1', count:  6 },
+  { dept: 'Sales',       quarter: 'Q2', count:  8 },
+  { dept: 'Sales',       quarter: 'Q3', count: 10 },
+  { dept: 'Sales',       quarter: 'Q4', count: 12 },
+]
+const ctDepts    = computed(() => [...new Set(ctRaw.map(r => r.dept))])
+const ctQuarters = computed(() => [...new Set(ctRaw.map(r => r.quarter))])
+function ctCell(dept: string, quarter: string) {
+  return ctRaw.find(r => r.dept === dept && r.quarter === quarter)?.count ?? 0
+}
+function ctRowTotal(dept: string) {
+  return ctRaw.filter(r => r.dept === dept).reduce((s, r) => s + r.count, 0)
+}
+function ctColTotal(q: string) {
+  return ctRaw.filter(r => r.quarter === q).reduce((s, r) => s + r.count, 0)
+}
+const ctGrandTotal = computed(() => ctRaw.reduce((s, r) => s + r.count, 0))
+
+// ── Freeze Table ──────────────────────────────────────────────────────────────
+const ftHeaders = ['Q1 Rev', 'Q2 Rev', 'Q3 Rev', 'Q4 Rev', 'YoY %', 'Mkt Cap', 'P/E', 'Rating']
+const ftRows = [
+  ['Apple',     '$117B', '$94B',  '$90B',  '$124B', '+8%',  '$2.9T', '29', '★★★★★'],
+  ['Microsoft', '$56B',  '$52B',  '$55B',  '$62B',  '+13%', '$2.8T', '35', '★★★★★'],
+  ['Google',    '$80B',  '$74B',  '$76B',  '$86B',  '+11%', '$1.8T', '26', '★★★★☆'],
+  ['Amazon',    '$143B', '$127B', '$131B', '$170B', '+12%', '$1.7T', '58', '★★★★☆'],
+  ['Meta',      '$36B',  '$32B',  '$34B',  '$40B',  '+23%', '$1.3T', '24', '★★★★☆'],
+]
+
+// ── Row Selection Table ───────────────────────────────────────────────────────
+const rsRows = ref([
+  { id: 1, name: 'Project Alpha',   status: 'Active',   budget: '$24,000' },
+  { id: 2, name: 'Project Beta',    status: 'Pending',  budget: '$18,500' },
+  { id: 3, name: 'Project Gamma',   status: 'Active',   budget: '$31,200' },
+  { id: 4, name: 'Project Delta',   status: 'Complete', budget: '$9,800'  },
+  { id: 5, name: 'Project Epsilon', status: 'Active',   budget: '$42,000' },
+])
+const rsSelected = ref<number[]>([])
+const rsAllSelected = computed({
+  get: () => rsRows.value.length > 0 && rsSelected.value.length === rsRows.value.length,
+  set: (v: boolean) => { rsSelected.value = v ? rsRows.value.map(r => r.id) : [] },
+})
+function rsDelete() {
+  rsRows.value = rsRows.value.filter(r => !rsSelected.value.includes(r.id))
+  rsSelected.value = []
+}
+
+// ── Waterfall Chart ───────────────────────────────────────────────────────────
+const waterfallBars = [
+  { label: 'Start', value: 400, cumulative: 0,   isTotal: true  },
+  { label: 'Q1',    value: 120, cumulative: 400, isTotal: false },
+  { label: 'Q2',    value: -80, cumulative: 520, isTotal: false },
+  { label: 'Q3',    value: 150, cumulative: 440, isTotal: false },
+  { label: 'Q4',    value: 200, cumulative: 590, isTotal: false },
+  { label: 'End',   value: 790, cumulative: 0,   isTotal: true  },
+]
+const wfMaxVal = 900
+function wfBarY(bar: (typeof waterfallBars)[0]) {
+  const h = 160
+  if (bar.isTotal) return h - (bar.value / wfMaxVal) * h
+  return bar.value >= 0
+    ? h - ((bar.cumulative + bar.value) / wfMaxVal) * h
+    : h - (bar.cumulative / wfMaxVal) * h
+}
+function wfBarH(bar: (typeof waterfallBars)[0]) {
+  return Math.max(2, Math.abs(bar.value) / wfMaxVal * 160)
+}
+
+// ── Bubble Chart ──────────────────────────────────────────────────────────────
+const bubbleData = [
+  { label: 'Vue',     x: 75, y: 85, r: 28, color: '#41b883' },
+  { label: 'React',   x: 90, y: 78, r: 42, color: '#61dafb' },
+  { label: 'Angular', x: 55, y: 70, r: 24, color: '#dd0031' },
+  { label: 'Svelte',  x: 82, y: 92, r: 18, color: '#ff3e00' },
+  { label: 'Solid',   x: 88, y: 95, r: 14, color: '#4284f4' },
+  { label: 'Nuxt',    x: 65, y: 80, r: 20, color: '#00c58e' },
+]
+const bubbleHover = ref<number | null>(null)
+
+// ── Funnel Chart ──────────────────────────────────────────────────────────────
+const funnelSteps = [
+  { label: 'Visitors',  value: 10000, color: '#6366f1' },
+  { label: 'Sign-ups',  value:  3200, color: '#8b5cf6' },
+  { label: 'Trials',    value:  1400, color: '#a855f7' },
+  { label: 'Customers', value:   520, color: '#d946ef' },
+]
+const funnelMax = 10000
+
+// ── Treemap ───────────────────────────────────────────────────────────────────
+const treemapData = [
+  { label: 'Tech',       value: 38, color: '#6366f1' },
+  { label: 'Finance',    value: 22, color: '#22c55e' },
+  { label: 'Healthcare', value: 18, color: '#f59e0b' },
+  { label: 'Energy',     value: 12, color: '#ef4444' },
+  { label: 'Consumer',   value:  7, color: '#06b6d4' },
+  { label: 'Utilities',  value:  3, color: '#8b5cf6' },
+]
+const treemapRects = computed(() => {
+  const W = 500, H = 200
+  const total = treemapData.reduce((s, d) => s + d.value, 0)
+  let y = 0
+  return treemapData.map(d => {
+    const h = (d.value / total) * H
+    const r = { x: 0, y, w: W, h, label: d.label, value: d.value, color: d.color }
+    y += h
+    return r
+  })
+})
+
+// ── Candlestick ───────────────────────────────────────────────────────────────
+const candleData = [
+  { d: 'Mon', o: 142, h: 148, l: 138, c: 145 },
+  { d: 'Tue', o: 145, h: 152, l: 143, c: 150 },
+  { d: 'Wed', o: 150, h: 155, l: 146, c: 148 },
+  { d: 'Thu', o: 148, h: 151, l: 140, c: 141 },
+  { d: 'Fri', o: 141, h: 149, l: 139, c: 147 },
+  { d: 'Sat', o: 147, h: 153, l: 145, c: 152 },
+  { d: 'Sun', o: 152, h: 158, l: 149, c: 155 },
+]
+const candleMinV = 135, candleMaxV = 162, candleHpx = 160
+function candleY(v: number) { return candleHpx - ((v - candleMinV) / (candleMaxV - candleMinV)) * candleHpx }
+
+// ── Multi-line Chart ──────────────────────────────────────────────────────────
+const mlMonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+const mlSeries = [
+  { name: 'Revenue',  color: '#6366f1', values: [42,48,55,51,60,68,72,70,78,82,88,94] },
+  { name: 'Expenses', color: '#ef4444', values: [30,32,35,38,36,40,42,39,44,46,48,50] },
+  { name: 'Profit',   color: '#22c55e', values: [12,16,20,13,24,28,30,31,34,36,40,44] },
+]
+const mlHpx = 150, mlWpx = 470, mlMaxV = 100
+function mlPoints(values: number[]) {
+  return values.map((v, i) => `${30 + (i / 11) * mlWpx},${mlHpx - (v / mlMaxV) * mlHpx}`).join(' ')
+}
+
+// ── Virtual List ──────────────────────────────────────────────────────────────
+const vlAllItems = Array.from({ length: 10000 }, (_, i) => ({
+  id:    i + 1,
+  name:  `Record #${String(i + 1).padStart(5, '0')}`,
+  value: ((i * 7919) % 1000) + 1,
+}))
+const vlItemHeight = 36
+const vlScrollTop  = ref(0)
+const vlStartIdx   = computed(() => Math.floor(vlScrollTop.value / vlItemHeight))
+const vlVisible    = computed(() => vlAllItems.slice(vlStartIdx.value, vlStartIdx.value + 12))
+function vlOnScroll(e: Event) { vlScrollTop.value = (e.target as HTMLElement).scrollTop }
+
+// ── Rich Text Editor ──────────────────────────────────────────────────────────
+const rtEl = ref<HTMLElement | null>(null)
+function rtExec(cmd: string) {
+  rtEl.value?.focus()
+  document.execCommand(cmd, false, undefined)
+}
+
+// ── Date Picker ───────────────────────────────────────────────────────────────
+const dpYear     = ref(new Date().getFullYear())
+const dpMonth    = ref(new Date().getMonth())
+const dpSelected = ref<string | null>(null)
+const dpMonthName = computed(() =>
+  new Date(dpYear.value, dpMonth.value).toLocaleString('default', { month: 'long' })
+)
+const dpDays = computed(() => {
+  const first = new Date(dpYear.value, dpMonth.value, 1).getDay()
+  const total = new Date(dpYear.value, dpMonth.value + 1, 0).getDate()
+  return [...Array(first).fill(null), ...Array.from({ length: total }, (_, i) => i + 1)]
+})
+function dpKey(day: number) {
+  return `${dpYear.value}-${String(dpMonth.value + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+}
+function dpPrev() { if (dpMonth.value === 0) { dpMonth.value = 11; dpYear.value-- } else dpMonth.value-- }
+function dpNext() { if (dpMonth.value === 11) { dpMonth.value = 0; dpYear.value++ } else dpMonth.value++ }
+
+// ── File Upload ───────────────────────────────────────────────────────────────
+const fuFiles    = ref<{ name: string; size: string }[]>([])
+const fuDragging = ref(false)
+function fuDrop(e: DragEvent) {
+  fuDragging.value = false
+  const files = Array.from(e.dataTransfer?.files ?? [])
+  fuFiles.value.push(...files.map(f => ({ name: f.name, size: (f.size / 1024).toFixed(1) + ' KB' })))
+}
+function fuPick(e: Event) {
+  const files = Array.from((e.target as HTMLInputElement).files ?? [])
+  fuFiles.value.push(...files.map(f => ({ name: f.name, size: (f.size / 1024).toFixed(1) + ' KB' })))
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+const dashStats = [
+  { label: 'Total Revenue', value: '$128,400', change: '+12%', up: true  },
+  { label: 'Active Users',  value: '4,821',    change: '+8%',  up: true  },
+  { label: 'Avg Session',   value: '3m 42s',   change: '-3%',  up: false },
+  { label: 'Conversion',    value: '5.2%',     change: '+1.1%',up: true  },
+]
+const dashSources = [
+  { label: 'Organic Search', pct: 42, color: '#6366f1' },
+  { label: 'Direct',         pct: 28, color: '#22c55e' },
+  { label: 'Referral',       pct: 18, color: '#f59e0b' },
+  { label: 'Social',         pct: 12, color: '#ef4444' },
+]
+
+// ── Gantt Chart ───────────────────────────────────────────────────────────────
+const ganttTasks = [
+  { name: 'Planning',    start: 0,  duration: 3, color: '#6366f1' },
+  { name: 'Design',      start: 2,  duration: 4, color: '#8b5cf6' },
+  { name: 'Development', start: 4,  duration: 8, color: '#22c55e' },
+  { name: 'Testing',     start: 10, duration: 3, color: '#f59e0b' },
+  { name: 'Deployment',  start: 12, duration: 2, color: '#ef4444' },
+]
+const ganttTotalDays = 15
+
+// ── JSON Viewer ───────────────────────────────────────────────────────────────
+const JsonNode = defineComponent({
+  name: 'JsonNode',
+  props: {
+    data:  { type: null as any },
+    label: { type: String },
+    depth: { type: Number, default: 0 },
+  },
+  setup(props) {
+    const open    = ref(true)
+    const isObj   = computed(() => props.data !== null && typeof props.data === 'object')
+    const entries = computed(() => isObj.value ? Object.entries(props.data as object) : [])
+    const valColor = computed(() => {
+      if (typeof props.data === 'number') return '#f59e0b'
+      if (typeof props.data === 'boolean') return '#ef4444'
+      if (typeof props.data === 'string')  return '#22c55e'
+      return 'var(--text2)'
+    })
+    return { open, isObj, entries, valColor }
+  },
+  template: `
+    <div :style="{ paddingLeft: depth*16+'px', fontFamily:'monospace', fontSize:'.82rem', lineHeight:'1.8' }">
+      <template v-if="isObj">
+        <span style="cursor:pointer;user-select:none" @click="open=!open">{{ open ? '▾' : '▸' }}</span>
+        <span v-if="label !== undefined" style="color:#7dd3fc"> "{{ label }}"</span>
+        <span v-if="label !== undefined"> : </span>
+        <span style="color:var(--text2)">{{ Array.isArray(data) ? '[' : '{' }}</span>
+        <span v-if="!open" style="color:var(--text2);cursor:pointer" @click="open=true"> … {{ Array.isArray(data) ? ']' : '}' }}</span>
+        <template v-if="open">
+          <JsonNode v-for="[k,v] in entries" :key="k" :data="v" :label="k" :depth="depth+1" />
+          <div :style="{ paddingLeft: depth*16+'px' }" style="color:var(--text2)">{{ Array.isArray(data) ? ']' : '}' }}</div>
+        </template>
+      </template>
+      <template v-else>
+        <span v-if="label !== undefined" style="color:#7dd3fc"> "{{ label }}"</span>
+        <span v-if="label !== undefined"> : </span>
+        <span :style="{ color: valColor }">{{ typeof data === 'string' ? '"' + data + '"' : String(data) }}</span>
+      </template>
+    </div>`,
+})
+const jsonViewerData = {
+  name: 'vue-storybook', version: '1.0.0',
+  stats: { components: 103, groups: 10, lines: 4800 },
+  features: ['TypeScript', 'Composition API', 'SVG Charts', 'Virtual Scroll'],
+  config: { darkMode: true, port: 8080, build: { minify: true, sourcemap: false } },
+}
+
+// ── Code strings ──────────────────────────────────────────────────────────────
+const pivotCode = `<th v-for="p in products">{{ p }}</th>
+<tr v-for="r in regions">
+  <td v-for="p in products">{{ cell(r,p) }}</td>
+  <td>{{ rowTotal(r) }}</td>
+</tr>`
+const spreadsheetCode = `<td v-for="ci in 4" style="padding:0">
+  <input class="sb-cell-input" v-model="data[ri][ci-1]" />
+</td>
+<td>{{ rowSum(ri) }}</td>`
+const sortTableCode = `<th @click="toggleSort(col.key)">
+  {{ col.label }} {{ sortIcon }}
+</th>
+<tr v-for="row in sorted">…</tr>`
+const comparisonCode = `<td v-for="plan in plans" style="text-align:center">
+  <span :style="{ color: plan.has(feat) ? '#22c55e' : '#ef4444' }">
+    {{ plan.has(feat) ? '✓' : '✗' }}
+  </span>
+</td>`
+const crosstabCode = `<tr v-for="dept in depts">
+  <td v-for="q in quarters">{{ cell(dept,q) }}</td>
+  <td>{{ rowTotal(dept) }}</td>
+</tr>`
+const freezeTableCode = `.sb-sticky-col {
+  position: sticky; left: 0;
+  background: var(--bg2); z-index: 1;
+}`
+const rowSelectCode = `<input type="checkbox" v-model="allSelected" />
+<tr v-for="row in rows">
+  <input type="checkbox" :value="row.id" v-model="selected" />
+</tr>
+<button @click="deleteSelected">Delete</button>`
+const waterfallCode = `<rect v-for="bar in bars"
+  :x="barX(bar)" :y="barY(bar)" :height="barH(bar)"
+  :fill="bar.isTotal ? '#6366f1' : bar.value>=0 ? '#22c55e' : '#ef4444'" />`
+const bubbleChartCode = `<circle v-for="(b,i) in data"
+  :cx="scaleX(b.x)" :cy="scaleY(b.y)"
+  :r="hover===i ? b.r+5 : b.r"
+  :fill="b.color+'88'" :stroke="b.color"
+  @mouseenter="hover=i" @mouseleave="hover=null" />`
+const funnelCode = `<div v-for="(step,i) in steps"
+  :style="{ width: step.value/max*100+'%', background: step.color }">
+  {{ step.label }}: {{ step.value.toLocaleString() }}
+</div>`
+const treemapCode = `const rects = computed(() => {
+  let y = 0
+  return data.map(d => {
+    const h = (d.value/total)*H
+    return { x:0, y: y+=h, w:W, h, ...d }
+  })
+})`
+const candlestickCode = `<line :y1="candleY(c.h)" :y2="candleY(c.l)" :stroke="color(c)" />
+<rect :y="candleY(Math.max(c.o,c.c))"
+  :height="Math.abs(candleY(c.o)-candleY(c.c))"
+  :fill="c.c>=c.o ? '#22c55e' : '#ef4444'" />`
+const multiLineCode = `<polyline v-for="s in series"
+  :points="points(s.values)"
+  :stroke="s.color" fill="none"
+  stroke-width="2.5" />`
+const virtualListCode = `const startIdx = computed(() =>
+  Math.floor(scrollTop.value / itemH))
+const visible = computed(() =>
+  allItems.slice(startIdx.value, startIdx.value+12))`
+const richTextCode = `<button @click="exec('bold')"><b>B</b></button>
+<button @click="exec('italic')"><i>I</i></button>
+<div ref="editor" contenteditable="true" />`
+const datePickerCode = `const days = computed(() => {
+  const blanks = Array(firstDay).fill(null)
+  const nums   = Array.from({length:daysInMonth},(_,i)=>i+1)
+  return [...blanks, ...nums]
+})`
+const fileUploadCode = `<div @dragover.prevent @drop.prevent="onDrop"
+  :class="{ active: dragging }">
+  Drop files here
+  <input type="file" @change="onPick" />
+</div>`
+const dashboardCode = `<div class="dashboard">
+  <div v-for="stat in stats" class="stat-card">
+    <div>{{ stat.label }}</div>
+    <div>{{ stat.value }}</div>
+    <div :style="{ color: stat.up ? 'green':'red' }">{{ stat.change }}</div>
+  </div>
+</div>`
+const ganttCode = `<rect v-for="task in tasks"
+  :x="60 + task.start * dayW"
+  :width="task.duration * dayW - 4"
+  :fill="task.color" rx="5" />`
+const jsonViewerCode = `<!-- Recursive JsonNode component -->
+<JsonNode :data="json" :depth="0" />
+
+setup(props) {
+  const open    = ref(true)
+  const isObj   = computed(() => typeof props.data === 'object')
+  const entries = computed(() => Object.entries(props.data))
+  return { open, isObj, entries }
+}`
 </script>
 
 <style>
@@ -3663,10 +4680,55 @@ td:hover .sb-edit-hint { opacity:1 !important; }
 @keyframes sb-loading-bar { 0%{width:0%} 70%{width:100%} 100%{width:100%;opacity:0} }
 @keyframes fadein     { from{opacity:0} to{opacity:1} }
 
+/* ── Spreadsheet ── */
+.sb-cell-input { width:100%; border:none; background:transparent; color:var(--text); font-family:monospace; font-size:.85rem; padding:8px 12px; outline:none; transition:background .1s; }
+.sb-cell-input:focus { background:rgba(99,102,241,.12); }
+.sb-spreadsheet td { padding:0; }
+
+/* ── Freeze columns ── */
+.sb-sticky-col { position:sticky; left:0; background:var(--bg2); z-index:1; box-shadow:2px 0 6px rgba(0,0,0,.2); }
+.sb-table thead .sb-sticky-col { background:var(--bg3); }
+
+/* ── Virtual List ── */
+.sb-virtual-container { height:288px; overflow-y:auto; border:1px solid var(--bg3); border-radius:8px; position:relative; }
+.sb-virtual-row { display:flex; align-items:center; gap:16px; padding:0 16px; height:36px; border-bottom:1px solid var(--bg3); font-size:.85rem; box-sizing:border-box; }
+.sb-virtual-row:hover { background:rgba(255,255,255,.04); }
+
+/* ── Rich Text Editor ── */
+.sb-rte { border:1px solid var(--bg3); border-radius:8px; overflow:hidden; }
+.sb-rte-toolbar { display:flex; gap:3px; align-items:center; padding:6px 10px; background:var(--bg3); flex-wrap:wrap; }
+.sb-rte-btn { background:none; border:1px solid transparent; padding:4px 8px; border-radius:5px; cursor:pointer; color:var(--text); font-size:.85rem; line-height:1.4; }
+.sb-rte-btn:hover { background:var(--bg2); border-color:rgba(255,255,255,.1); }
+.sb-rte-sep { width:1px; height:18px; background:rgba(255,255,255,.15); margin:0 4px; }
+.sb-rte-body { min-height:130px; padding:14px 16px; font-size:.9rem; line-height:1.7; outline:none; }
+.sb-rte-body:focus { background:rgba(99,102,241,.04); }
+
+/* ── Date Picker ── */
+.sb-calendar { display:inline-block; max-width:300px; }
+.sb-cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px; }
+.sb-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+.sb-cal-day-name { text-align:center; font-size:.7rem; font-weight:700; color:var(--text2); padding:4px 0; text-transform:uppercase; }
+.sb-cal-day { text-align:center; padding:7px 2px; border-radius:6px; font-size:.84rem; cursor:pointer; transition:background .1s; min-height:32px; }
+.sb-cal-day:not(.sb-cal-day--empty):hover { background:var(--bg3); }
+.sb-cal-day--selected { background:var(--accent) !important; color:#fff; font-weight:700; }
+.sb-cal-day--empty { cursor:default; pointer-events:none; }
+
+/* ── File Upload ── */
+.sb-dropzone { border:2px dashed var(--bg3); border-radius:12px; padding:36px 24px; text-align:center; transition:border-color .2s,background .2s; cursor:default; }
+.sb-dropzone--active { border-color:var(--accent); background:rgba(99,102,241,.07); }
+.sb-file-item { display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--bg2); border:1px solid var(--bg3); border-radius:8px; }
+
+/* ── Dashboard ── */
+.sb-dashboard { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.sb-dash-stat  { background:var(--bg2); border:1px solid var(--bg3); border-radius:10px; padding:16px 18px; }
+.sb-dash-chart { background:var(--bg2); border:1px solid var(--bg3); border-radius:10px; padding:16px 18px; }
+
 @media(max-width:768px) {
   .sb-sidebar { display:none; }
   .sb-section      { padding:24px 20px; }
   .sb-page-header  { padding:24px 20px; }
   .sb-page-title   { font-size:1.4rem; }
+  .sb-dashboard    { grid-template-columns:repeat(2,1fr); }
+  .sb-dash-chart   { grid-column:span 2; }
 }
 </style>

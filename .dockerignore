@@ -1,0 +1,7 @@
+# Exclude large directories that don't belong in the build context
+node_modules
+dist
+
+# Editor and OS noise
+.DS_Store
+*.log
